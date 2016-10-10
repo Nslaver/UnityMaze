@@ -7,12 +7,12 @@ public class WorldCreation : MonoBehaviour {
     public static string[] level = {
     "WWWWWWWWWWWWWWWWWWWWWW",
     "W    W       w       W",
-    "W    W               W",
+    "W                    W",
     "W    W     WWWWWW    W",
     "W    WWW WWW    W    W",
     "W    W          WWw wW",
     "WWW  W     W         W",
-    "W    W     W W       W",
+    "W          W W       W",
     "W    W    PW     WWW W",
     "W    WWW WWWE  W     W",
     "W          W   W W   W",
@@ -47,12 +47,12 @@ public class WorldCreation : MonoBehaviour {
             int y = 0;
             foreach(char col in e.ToCharArray())
             {
-                Debug.Log("X:" + x + "Y:" + y);
+                //Debug.Log("X:" + x + "Y:" + y);
                 if (col == 'P')
                 {
                     playerInst = new Player(playerPrefab, x, y);
                     playerInst.setInstace(playerInstace);                    
-                    Debug.Log("P" + playerInst.getPrefab());
+                    //Debug.Log("P" + playerInst.getPrefab());
                 }
                 if (col == 'W')
                 {
@@ -62,7 +62,7 @@ public class WorldCreation : MonoBehaviour {
                     GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
 
                     temp.setInstace(clone);
-                    Debug.Log("P" + temp.getPrefab());
+                    //Debug.Log("P" + temp.getPrefab());
                 }
                 if (col == 'E')
                 {
@@ -70,23 +70,45 @@ public class WorldCreation : MonoBehaviour {
                     enemyList.Add((Enemy)temp);
                     GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
                     temp.setInstace(clone);
-                    Debug.Log("P" + temp.getPrefab());
+                    //Debug.Log("P" + temp.getPrefab());
                 }
                 // Instanciar lista de nodos
-                if (col == ' ' || col == 'E' || col == 'P'){
+                if (col != 'W'){
                     temp = new Node(nodePrefab, x, y);
                     //Instancio mis nodos
                     objLevel[x,y] = temp;
                     nodeList.Add((Node)temp);
                     GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
                     temp.setInstace(clone);
-                    Debug.Log("P" + temp.getPrefab());
+                    //Debug.Log("P" + temp.getPrefab());
                 }
                 y++;                
             }
             x++;
         }
 	}
+
+    public List<Node> getNeighbors(Node current)
+    {
+        List < Node > list = new List<Node>();
+        if(objLevel[current.x + 1 , current.y] is Node)
+        {
+            list.Add((Node)objLevel[current.x + 1, current.y]);
+        }
+        if (objLevel[current.x, current.y + 1] is Node)
+        {
+            list.Add((Node)objLevel[current.x, current.y + 1]);
+        }
+        if (objLevel[current.x - 1, current.y] is Node)
+        {
+            list.Add((Node)objLevel[current.x - 1, current.y]);
+        }
+        if (objLevel[current.x, current.y -1] is Node)
+        {
+            list.Add((Node)objLevel[current.x, current.y - 1]);
+        }
+        return list;
+    }
 
     // Update is called once per frame
     void Update() {
