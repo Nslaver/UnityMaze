@@ -4,29 +4,43 @@ using System.Collections.Generic;
 
 public class WorldCreation : MonoBehaviour {
 
+    /**
+    * E = Enemigo V1 (Estrella)
+    * V = Enemigo V2 (Vigila)
+    * P = Player
+    * W = Wall
+    * H = Vidas / Objetivos
+    **/
+
+    //00
     public static string[] level = {
     "WWWWWWWWWWWWWWWWWWWWWW",
-    "W    W       w       W",
     "W                    W",
-    "W    W     WWWWWW    W",
+    "W    WWWW WWWWW WWWW W",
+    "W    W          WV   W",
+    "W H             W    W",
+    "W    W     WWWWWW  H W",
     "W    WWW WWW    W    W",
-    "W    W          WWw wW",
+    "W    W          WWW WW",
     "WWW  W     W         W",
     "W          W W       W",
     "W    W    PW     WWW W",
     "W    WWW WWWE  W     W",
     "W          W   W W   W",
-    "WW WWwWW   WW  W W   W",
+    "WW WWWWW   WW  W W   W",
+    "WV   W               W",
     "W    W               W",
+    "W  H W          W    W",
     "W    W          W    W",
-    "W               W    W",
     "WWWWWWWWWWWWWWWWWWWWWW",
     };
+   //0123456789012345678901
 
     public TwoDObj[,] objLevel = new TwoDObj[level.Length, level[0].Length];
     public List<Node> nodeList = new List<Node>();
     public List<Wall> wallList = new List<Wall>();
     public List<Enemy> enemyList = new List<Enemy>();
+    public Dictionary<Node, Health> healthDict = new Dictionary<Node, Health>(); 
     public Player playerInst;
         
     public GameObject wallPrefab;
@@ -34,12 +48,12 @@ public class WorldCreation : MonoBehaviour {
     public GameObject nodePrefab;
     public GameObject playerPrefab;
     public GameObject playerInstace;
-    private Camera mainCamera;
+    public GameObject enemyV2Prefab;
+    public GameObject healthPrefab;
 
 
     // Use this for initialization
     void Start () {
-        mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         int x = 0;
         TwoDObj temp;
         foreach( string e in level)
@@ -48,45 +62,62 @@ public class WorldCreation : MonoBehaviour {
             foreach(char col in e.ToCharArray())
             {
                 //Debug.Log("X:" + x + "Y:" + y);
-                if (col == 'P')
+                GameObject clone;
+                switch (col)
                 {
-                    playerInst = new Player(playerPrefab, x, y);
-                    playerInst.setInstace(playerInstace);                    
-                    //Debug.Log("P" + playerInst.getPrefab());
-                }
-                if (col == 'W')
-                {
-                    temp = new Wall(wallPrefab,x, y);
-                    objLevel[x,y] = temp; 
-                    wallList.Add((Wall)temp);
-                    GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
-
-                    temp.setInstace(clone);
-                    //Debug.Log("P" + temp.getPrefab());
-                }
-                if (col == 'E')
-                {
-                    temp = new Enemy(enemyPrefab,x, y);
-                    enemyList.Add((Enemy)temp);
-                    GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
-                    temp.setInstace(clone);
-                    //Debug.Log("P" + temp.getPrefab());
-                }
-                // Instanciar lista de nodos
-                if (col != 'W'){
-                    temp = new Node(nodePrefab, x, y);
-                    //Instancio mis nodos
-                    objLevel[x,y] = temp;
-                    nodeList.Add((Node)temp);
-                    GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
-                    temp.setInstace(clone);
-                    //Debug.Log("P" + temp.getPrefab());
+                    case 'P':
+                        playerInst = new Player(playerPrefab, x, y);
+                        playerInst.setInstace(playerInstace);
+                        createNode(x, y);
+                        break;
+                    case 'W':
+                        temp = new Wall(wallPrefab, x, y);
+                        objLevel[x, y] = temp;
+                        wallList.Add((Wall)temp);
+                        clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
+                        temp.setInstace(clone);
+                        break;
+                    case 'E':
+                        temp = new Enemy(enemyPrefab, x, y);
+                        enemyList.Add((Enemy)temp);
+                        clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
+                        temp.setInstace(clone);
+                        createNode(x, y);
+                        break;
+                    case 'V':
+                        temp = new Enemy(enemyV2Prefab, x, y);
+                        enemyList.Add((Enemy)temp);
+                        clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
+                        temp.setInstace(clone);
+                        createNode(x, y);
+                        break;
+                    case 'H':
+                        temp = new Health(healthPrefab, x, y);
+                        healthDict.Add(createNode(x, y), (Health)temp);
+                        clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
+                        temp.setInstace(clone);
+                        createNode(x, y);
+                        break;
+                    default:
+                        createNode(x, y);
+                        break;
                 }
                 y++;                
             }
             x++;
         }
 	}
+
+    private Node createNode(int x, int y)
+    {
+        TwoDObj temp = new Node(nodePrefab, x, y);
+        //Instancio mis nodos
+        objLevel[x, y] = temp;
+        nodeList.Add((Node)temp);
+        GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
+        temp.setInstace(clone);
+        return (Node)temp;
+    }
 
     public List<Node> getNeighbors(Node current)
     {
@@ -119,6 +150,7 @@ public class TwoDObj
 {
     public int x;
     public int y;
+    public float z;
     public GameObject prefab;
     public GameObject instance;
 
@@ -126,6 +158,7 @@ public class TwoDObj
     {
         this.x = x;
         this.y = y;
+        this.z = 1;
         this.prefab = prefab;
     }
 
@@ -136,7 +169,7 @@ public class TwoDObj
 
     public virtual Vector3 get3dLocation()
     {
-        return new Vector3(x,1,y);
+        return new Vector3(x,z,y);
     }
 
     public virtual void setInstace(GameObject instance)
@@ -179,5 +212,13 @@ public class Player : TwoDObj
 {
     public Player(GameObject prefab, int x, int y) : base(prefab, x, y)
     {
+    }
+}
+
+public class Health : TwoDObj
+{
+    public Health(GameObject prefab, int x, int y) : base(prefab, x, y)
+    {
+        this.z = 0;
     }
 }

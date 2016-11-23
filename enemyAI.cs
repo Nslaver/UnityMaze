@@ -1,19 +1,18 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class enemyAI : MonoBehaviour {
+public class EnemyAI : MonoBehaviour {
 
     WorldCreation worldData;
-    //public static enum states = {BUSCAR,PERSEGUIR};
-    enum states : byte {FOLLOW= 0, SEARCH = 1};
-    // Use this for initialization
+    enum states : byte {FOLLOW= 0, SEARCH = 1, PATROL = 2};
     GameObject player;
     states selfState = states.FOLLOW;
     RaycastHit hit;
     Vector3 rayDirection;
-    public float movSpeed = 10.0f;
-    public float rotSpeed = 2.0f;
+    public float movSpeed;
+    public float rotSpeed;
     public List<Node> openSet;
     public List<Node> closeSet;
     public Material selectedMaterial;
@@ -29,13 +28,25 @@ public class enemyAI : MonoBehaviour {
         worldData = GameObject.FindGameObjectWithTag("WorldCreator").gameObject.GetComponent<WorldCreation>();
         openSet = new List<Node>();
         closeSet = new List<Node>();
-        closestNode = (Node)worldData.objLevel[Mathf.CeilToInt(transform.position.x),
-                    Mathf.CeilToInt(transform.position.z)];
-        playerNode = (Node)worldData.objLevel[Mathf.CeilToInt(player.transform.position.x),
-                    Mathf.CeilToInt(player.transform.position.z)];
+        closestNode = getClosestNode();
+        playerNode = getPlayerNode();
     }
 	
-	void Update () {
+
+    private Node getClosestNode()
+    {
+        Node closestNode = (Node)worldData.objLevel[Mathf.FloorToInt(transform.position.x),
+                    Mathf.FloorToInt(transform.position.z)];
+        return closestNode;
+    }
+    private Node getPlayerNode()
+    {
+        Node playerNode = (Node)worldData.objLevel[Mathf.FloorToInt(player.transform.position.x),
+                    Mathf.FloorToInt(player.transform.position.z)];
+        return playerNode;
+    }
+
+    void Update () {
         if(lineSight()){
             selfState = states.SEARCH;
         }
@@ -47,7 +58,8 @@ public class enemyAI : MonoBehaviour {
             case states.FOLLOW:
                 // DEDBUG: print("pos:X" + transform.position.x + "Y:" +transform.position.z);
                 // DEDBUG: print("ajs:X" + Mathf.Ceil(transform.position.x) + "Y:" + Mathf.Ceil(transform.position.z));
-                follow();
+                buildPath();
+                followPath();
                 break;
             case states.SEARCH:
                 search();
@@ -80,40 +92,56 @@ public class enemyAI : MonoBehaviour {
     {
         transform.position = Vector3.MoveTowards(transform.position, player.transform.position, movSpeed / 50);
         float step = rotSpeed * Time.deltaTime;
-        Vector3 newDir = Vector3.RotateTowards(transform.forward, player.transform.position.normalized, step, 0.0f);
+        Vector3 newDir = Vector3.RotateTowards(transform.forward, player.transform.position, step, 0.0f);
+        transform.rotation = Quaternion.LookRotation(newDir);
+    }
+
+    public void followPath()
+    {
+        Node nextNode;
+        nextNode = closeSet[0];
+        if (nextNode != null)
+        {
+            Vector3 target = nextNode.get3dLocation();
+            transform.position = Vector3.MoveTowards(transform.position, target, movSpeed / 100);
+            float step = rotSpeed * Time.deltaTime;
+            Vector3 newDir = Vector3.RotateTowards(transform.forward, target, step, 0.0f);
+            Debug.DrawRay(transform.position, newDir, Color.red);
+            transform.rotation = Quaternion.LookRotation(newDir);
+            //print("DISTANCE:" + Vector3.Distance(transform.position, target));
+            if (Vector3.Distance(transform.position, target) < 1)
+            {
+                closeSet[0].getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
+                closeSet.RemoveAt(0);
+            }
+        }            
     }
 
     // Mover el el AI en modo busqueda verificando el cambio en posiciones
-    public void follow()
+    public void buildPath()
     {
-        if(closestNode != (Node)worldData.objLevel[Mathf.CeilToInt(transform.position.x),
-                    Mathf.CeilToInt(transform.position.z)])
+        try
         {
-            closestNode = (Node)worldData.objLevel[Mathf.CeilToInt(transform.position.x),
-                Mathf.CeilToInt(transform.position.z)];
-            foreach (Node clearNode in closeSet)
+            if (playerNode != getPlayerNode())
             {
-                clearNode.getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
+            
+                    playerNode = getPlayerNode();
+                    closestNode = getClosestNode();           
+            
+                foreach (Node clearNode in closeSet)
+                {
+                    clearNode.getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
+                }
+                openSet = new List<Node>();
+                closeSet = new List<Node>();                
             }
-            openSet = new List<Node>();
-            closeSet = new List<Node>();
-                
         }
-        
-        if (playerNode != (Node)worldData.objLevel[Mathf.CeilToInt(player.transform.position.x),
-                    Mathf.CeilToInt(player.transform.position.z)])
+        catch (Exception exc)
         {
-            playerNode = (Node)worldData.objLevel[Mathf.CeilToInt(player.transform.position.x),
-                Mathf.CeilToInt(player.transform.position.z)];
-            foreach (Node clearNode in closeSet)
-            {
-                clearNode.getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
-            }
-            openSet = new List<Node>();
-            closeSet = new List<Node>();
-                
+            exc.GetType();
+            //DEBUG print("NE:" + e.ToString());
         }
-        
+
         openSet.Add(closestNode);
         while (tick < maxTicks && openSet.Count > 0 && (closeSet.Count == 0 || !closeSet.Contains(playerNode)) )
         {
