@@ -13,15 +13,16 @@ public class WorldCreation : MonoBehaviour {
     **/
 
     //00
+    //
     public static string[] level = {
     "WWWWWWWWWWWWWWWWWWWWWW",
-    "W                    W",
+    "WV                   W",
     "W    WWWW WWWWW WWWW W",
-    "W    W          WV   W",
-    "W H             W    W",
-    "W    W     WWWWWW  H W",
+    "W  H W          WV   W",
+    "W    W          W    W",
+    "W WWWW     WWWWWW  H W",
     "W    WWW WWW    W    W",
-    "W    W          WWW WW",
+    "W    W          W WWWW",
     "WWW  W     W         W",
     "W          W W       W",
     "W    W    PW     WWW W",
@@ -50,12 +51,14 @@ public class WorldCreation : MonoBehaviour {
     public GameObject playerInstace;
     public GameObject enemyV2Prefab;
     public GameObject healthPrefab;
+    private bool showNode;
 
 
     // Use this for initialization
     void Start () {
         int x = 0;
         TwoDObj temp;
+        showNode = false;
         foreach( string e in level)
         {
             int y = 0;
@@ -63,6 +66,7 @@ public class WorldCreation : MonoBehaviour {
             {
                 //Debug.Log("X:" + x + "Y:" + y);
                 GameObject clone;
+                Node tempNode;
                 switch (col)
                 {
                     case 'P':
@@ -93,10 +97,10 @@ public class WorldCreation : MonoBehaviour {
                         break;
                     case 'H':
                         temp = new Health(healthPrefab, x, y);
-                        healthDict.Add(createNode(x, y), (Health)temp);
+                        tempNode = createNode(x, y);
+                        healthDict.Add(tempNode, (Health)temp);
                         clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
                         temp.setInstace(clone);
-                        createNode(x, y);
                         break;
                     default:
                         createNode(x, y);
@@ -116,7 +120,17 @@ public class WorldCreation : MonoBehaviour {
         nodeList.Add((Node)temp);
         GameObject clone = Instantiate(temp.getPrefab(), temp.get3dLocation(), Quaternion.identity) as GameObject;
         temp.setInstace(clone);
+        clone.SetActive(showNode);
         return (Node)temp;
+    }
+
+    public void switchNodes()
+    {
+        showNode = !showNode;
+        foreach (Node a in nodeList)
+        {
+            a.getInstace().SetActive(showNode);
+        }
     }
 
     public List<Node> getNeighbors(Node current)

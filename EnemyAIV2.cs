@@ -5,12 +5,12 @@ using System.Collections.Generic;
 public class EnemyAIV2 : MonoBehaviour {
 
     WorldCreation worldData;
-    enum states : byte { PATROL = 0};
+    enum states : byte { PATROL = 0, WAIT = 1};
     GameObject player;
     states selfState = states.PATROL;
     public List<Node> patrol;
     private int objective;
-    public Health guard;
+    public Health toGuard;
     public float movSpeed;
     public float rotSpeed;
 
@@ -23,13 +23,18 @@ public class EnemyAIV2 : MonoBehaviour {
         patrol.Add((Node)worldData.objLevel[patrol[0].x, patrol[0].y + 3]);
         patrol.Add((Node)worldData.objLevel[patrol[0].x + 3, patrol[0].y + 3]);
         patrol.Add((Node)worldData.objLevel[patrol[0].x + 3, patrol[0].y]);
-        guard = worldData.healthDict[(Node)worldData.objLevel[patrol[0].x + 2, patrol[0].y + 2]];        
+        toGuard = worldData.healthDict[(Node)worldData.objLevel[patrol[0].x + 2, patrol[0].y + 2]];        
     }
 	
 	// Update is called once per frame
 	void Update () {
         Node nextNode;
         nextNode = patrol[objective];
+        if (toGuard.getInstace() == null)
+        { 
+            Destroy(gameObject);
+            Destroy(this);
+        }
         if (nextNode != null)
         {
             Vector3 target = nextNode.get3dLocation();

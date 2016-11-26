@@ -117,6 +117,14 @@ public class EnemyAI : MonoBehaviour {
         }            
     }
 
+    private void cleanNodes()
+    {
+        foreach (Node clearNode in closeSet)
+        {
+            clearNode.getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
+        }
+    }
+
     // Mover el el AI en modo busqueda verificando el cambio en posiciones
     public void buildPath()
     {
@@ -125,13 +133,10 @@ public class EnemyAI : MonoBehaviour {
             if (playerNode != getPlayerNode())
             {
             
-                    playerNode = getPlayerNode();
-                    closestNode = getClosestNode();           
-            
-                foreach (Node clearNode in closeSet)
-                {
-                    clearNode.getInstace().GetComponentInChildren<Renderer>().material = nodeMaterial;
-                }
+                playerNode = getPlayerNode();
+                closestNode = getClosestNode();
+                cleanNodes();
+
                 openSet = new List<Node>();
                 closeSet = new List<Node>();                
             }

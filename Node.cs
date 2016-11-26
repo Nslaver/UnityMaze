@@ -12,4 +12,11 @@ public class Node : TwoDObj
     {
         return "(X:" + x + "Y:" + y + ")";
     }
+
+    public override Vector3 get3dLocation()
+    {
+        Vector3 ret = base.get3dLocation();
+        ret.y = 1f;
+        return ret;
+    }
 }

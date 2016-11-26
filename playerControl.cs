@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class PlayerControl : MonoBehaviour {
 
+    public WorldCreation worldData;
     public float speed;
     public Camera mainCamera;
     private Vector3 cameraFront;
@@ -32,7 +33,9 @@ public class PlayerControl : MonoBehaviour {
         rotation *= Time.deltaTime;
         transform.Rotate(0, rotation, 0);
         transform.position = transform.position + ( speed * move * Time.deltaTime);
-        
+        if (Input.GetKeyDown("space")){
+            worldData.switchNodes();
+        }
     }
 
     void OnGUI()
@@ -51,5 +54,14 @@ public class PlayerControl : MonoBehaviour {
                 SceneManager.LoadScene("Ganaste", LoadSceneMode.Single);
             }
         }
+        if(col.gameObject.tag == "enemy")
+        {
+            health = health - 5;
+            if (health <= 0)
+            {
+                SceneManager.LoadScene("Perdiste", LoadSceneMode.Single);
+            }
+        }
+
     }
 }
