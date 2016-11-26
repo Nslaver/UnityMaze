@@ -13,6 +13,12 @@ public class PlayerControl : MonoBehaviour {
     private int health;
     private int objectives;
     public Rigidbody rb;
+
+
+    public GUIContent content;
+
+    public GUIStyle styleGui = new GUIStyle();
+
     void Start()
     {
         health = 100;
@@ -40,8 +46,10 @@ public class PlayerControl : MonoBehaviour {
 
     void OnGUI()
     {
-        GUI.Box(new Rect(5, 5, 80, 40), "H:" + health + "/100 \n"+
-            "O: " + objectives + "/3");
+        content.text = "H:" + health + "/100 \n" +
+            "O: " + objectives + "/3";
+        GUI.Box(new Rect(5, 5, 80, 40), content, styleGui);
+        
     }
 
     void OnCollisionEnter(Collision col)

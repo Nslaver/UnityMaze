@@ -31,7 +31,7 @@ public class WorldCreation : MonoBehaviour {
     "WW WWWWW   WW  W W   W",
     "WV   W               W",
     "W    W               W",
-    "W  H W          W    W",
+    "W  H W          W   EW",
     "W    W          W    W",
     "WWWWWWWWWWWWWWWWWWWWWW",
     };
